@@ -9,9 +9,10 @@ server.config["MYSQL_USER"]=os.environ.get("MYSQL_USER")
 server.config["MYSQL_PASSWORD"]=os.environ.get("MYSQL_PASSWORD")
 server.config["MYSQL_PORT"]=os.environ.get("MYSQL_PORT")
 server.config["MYSQL_DB"]=os.environ.get("MYSQL_DB")
-#3306 , 33060
-@server.route("/login",method=["POST"])
+
+@server.route('/resource', methods = ['POST'])
 def login():
+
     auth=request.authorization
     if not auth:
         return "missing credentials",401
@@ -30,4 +31,35 @@ def login():
             return CreateJWT(auth.username,os.environ.get("JWT_SECRET"),True)
     else:
         return "invalid credentials",401
+
+@server.route("/validate",methods=["POST"])
+def validate():
+    encode_jwt=request.headers["Autherization"]
+    if not encode_jwt:
+        return "invalid credentials",401
+    encode_jwt=encode_jwt.split("")[1]
+    try:
+        decoded=jwt.decode(
+            encode_jwt,os.environ.get("JWT_SECRET"),algorithm=["HS256"]
+        )
+    except:
+        return "not authorized",403
+    
+    return decoded,200
+
+def CreateJWT(username,secret,authz):
+    return jwt.encode(
+        {
+            "username": username,
+            "exp": datetime.datetime.now(tz=datetime.timezone.utc)+datetime.timedelta(days=1),
+            "iat":datetime.datetime.utcnow(),
+            "admin": authz,
+        },
+        secret,
+        algorithm="HS256",
+    )
+
+if __name__=="__main__":
+    server.run(host="0.0.0.0",port=5000)
+    print(__name__)
     
