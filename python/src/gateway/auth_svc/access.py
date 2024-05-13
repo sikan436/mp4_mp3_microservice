@@ -2,12 +2,16 @@ import os, requests
 
 
 def login(request):
+    print ("inside access file login method")
     auth = request.authorization
     if not auth:
         return None, ("missing credentials", 401)
 
     basicAuth = (auth.username, auth.password)
-
+    print (auth.username,auth.password)
+    print("###########")
+    print("###########")
+    print(f"http://{os.environ.get('AUTH_SVC_ADDRESS')}/login")
     response = requests.post(
         f"http://{os.environ.get('AUTH_SVC_ADDRESS')}/login", auth=basicAuth
     )
